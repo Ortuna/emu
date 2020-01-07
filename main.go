@@ -1,12 +1,10 @@
 package main
 
 import (
-  "log"
-  "os"
+  _ "log"
   "image/color"
-  "math/rand"
 	"github.com/hajimehoshi/ebiten"
-  "github.com/ortuna/emu"
+  "github.com/ortuna/emu/cpu"
 )
 
 func update(screen *ebiten.Image) error {
@@ -19,8 +17,14 @@ func update(screen *ebiten.Image) error {
 }
 
 func main() {
-	if err := ebiten.Run(update, 64, 32, 6, "Hello, World!"); err != nil {
-		log.Fatal(err)
-	}
+//	if err := ebiten.Run(update, 64, 32, 6, "Hello, World!"); err != nil {
+//		log.Fatal(err)
+//}
 
+  cpu := cpu.LoadRom("rom.ch8")
+
+  for i := 0; i < cpu.RomSize / 2; i++ {
+    cpu.Tick()
+  }
+//  cpu.Debug()
 }
