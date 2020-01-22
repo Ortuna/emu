@@ -1,30 +1,29 @@
 package main
 
 import (
-  _ "log"
-  "image/color"
+  "log"
 	"github.com/hajimehoshi/ebiten"
   "github.com/ortuna/emu/cpu"
 )
 
+var c *cpu.Cpu
+
 func update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() { return nil }
+  if c == nil { 
+    c = cpu.NewCpu("maze.rom", screen)
+    ebiten.SetRunnableInBackground(true)
+    ebiten.SetMaxTPS(6)
+  }
 
-  c := color.RGBA{ uint8(rand.Intn(30) + 225), uint8(rand.Intn(50) + 100), 0, 255 }
-
-  screen.Set(32, 16, c)
+  //c.Tick()
+  c.DebugTick()
+  //panic("out")
   return nil
 }
 
 func main() {
-//	if err := ebiten.Run(update, 64, 32, 6, "Hello, World!"); err != nil {
-//		log.Fatal(err)
-//}
-
-  cpu := cpu.LoadRom("rom.ch8")
-
-  for i := 0; i < cpu.RomSize / 2; i++ {
-    cpu.Tick()
+  if err := ebiten.Run(update, 64, 32, 6, "Hello, World!"); err != nil {
+    log.Fatal(err)
   }
-//  cpu.Debug()
 }
