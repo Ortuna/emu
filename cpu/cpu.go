@@ -21,7 +21,7 @@ type Cpu struct {
   I      uint16
   Vx     []uint16
   Vy     []uint16
-  DrawMatrix [][]bool
+  DrawMatrix [][]int
   Screen *ebiten.Image
 }
 
@@ -42,7 +42,7 @@ func NewCpu(path string, screen *ebiten.Image) *Cpu {
     SP: 0,  //Stack Pointer
     I: 0,
     Screen: screen,
-    DrawMatrix: make([][]bool, 64),
+    DrawMatrix: make([][]int, 64),
   }
 
   fontSet := [80]byte {
@@ -69,7 +69,7 @@ func NewCpu(path string, screen *ebiten.Image) *Cpu {
   }
 
   for i := range cpu.DrawMatrix {
-    cpu.DrawMatrix[i] = make([]bool, 32)
+    cpu.DrawMatrix[i] = make([]int, 32)
   }
 
   pointer := 0
@@ -109,7 +109,7 @@ func (cpu *Cpu) DecomposeInstAt(PC uint16) (uint16, uint16, uint16, uint16, uint
 func (cpu *Cpu) DrawMatrixToScreen() {
   for x := range cpu.DrawMatrix {
     for y := range cpu.DrawMatrix[x] {
-      if cpu.DrawMatrix[x][y] {
+      if cpu.DrawMatrix[x][y] == 1 {
         c := color.RGBA{ 255, 255, 255, 1 }
         cpu.Screen.Set(x, y, c)
       }
@@ -210,9 +210,9 @@ func (cpu *Cpu) DebugTick() {
   tm.Flush()
 
   cpu.RunTick(cpu.DecomposeInstAt(cpu.PC))
-  cpu.DecomposeInstAt(cpu.PC)
-  cpu.DrawMatrixToScreen()
   cpu.PC += 2
+
+  cpu.DrawMatrixToScreen()
 //  cpu.DecomposeInstAt(0x200 + uint16(i))
 }
 
@@ -253,26 +253,18 @@ func (cpu *Cpu) i8xy0(Vx, Vy uint16) {
 }
 
 func (cpu *Cpu) i1nnn(nnn uint16) {
-  cpu.PC = nnn
+  cpu.PC = (nnn - 0x02)
 }
 
 func (cpu *Cpu) Dxyn(Vx, Vy, n uint16) {
   sprite := cpu.Memory[cpu.I : cpu.I + n]
 
   for y, value := range sprite {
-    var seq []byte
-
     for x := 7; x > 0; x-- {
       if (value >> x) & 0x01 == 0 {
-        seq = append(seq, 0)
-        continue 
+        continue
       }
-      seq = append(seq, 1)
-
-      cpu.DrawMatrix[int(cpu.Vx[Vx]) + (7 - x)][int(cpu.Vx[Vy]) + y] ^= true
+      cpu.DrawMatrix[int(cpu.Vx[Vx]) + (7 - x)][int(cpu.Vx[Vy]) + y] ^= 0x01
     }
-    log.Printf("%v", seq)
   }
-
-//  cpu.DrawMatrix[int(cpu.Vx[Vx])][int(cpu.Vx[Vy])] = true
 }
