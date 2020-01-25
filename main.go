@@ -11,9 +11,9 @@ var c *cpu.Cpu
 func update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() { return nil }
   if c == nil { 
-    c = cpu.NewCpu("maze.rom", screen)
+    c = cpu.NewCpu("MAZE", screen)
     ebiten.SetRunnableInBackground(true)
-    ebiten.SetMaxTPS(6)
+//    ebiten.SetMaxTPS(6)
   }
 
   //c.Tick()

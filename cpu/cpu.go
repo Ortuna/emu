@@ -106,12 +106,7 @@ func (cpu *Cpu) DecomposeInstAt(PC uint16) (uint16, uint16, uint16, uint16, uint
   return op_1, op_2, op_3, op_4, kk, nnn
 }
 
-func (cpu *Cpu) Tick() {
-//  op_1, op_2, op_3, op_4, kk, nnn := cpu.DecomposeInstAt(cpu.PC)
-
-  cpu.RunTick(cpu.DecomposeInstAt(cpu.PC))
-  cpu.PC += 2
-
+func (cpu *Cpu) DrawMatrixToScreen() {
   for x := range cpu.DrawMatrix {
     for y := range cpu.DrawMatrix[x] {
       if cpu.DrawMatrix[x][y] {
@@ -120,6 +115,15 @@ func (cpu *Cpu) Tick() {
       }
     }
   }
+}
+
+func (cpu *Cpu) Tick() {
+//  op_1, op_2, op_3, op_4, kk, nnn := cpu.DecomposeInstAt(cpu.PC)
+
+  cpu.RunTick(cpu.DecomposeInstAt(cpu.PC))
+  cpu.PC += 2
+
+  cpu.DrawMatrixToScreen()
 
   return
 }
@@ -207,6 +211,7 @@ func (cpu *Cpu) DebugTick() {
 
   cpu.RunTick(cpu.DecomposeInstAt(cpu.PC))
   cpu.DecomposeInstAt(cpu.PC)
+  cpu.DrawMatrixToScreen()
   cpu.PC += 2
 //  cpu.DecomposeInstAt(0x200 + uint16(i))
 }
@@ -252,7 +257,22 @@ func (cpu *Cpu) i1nnn(nnn uint16) {
 }
 
 func (cpu *Cpu) Dxyn(Vx, Vy, n uint16) {
-//  sprite := cpu.Memory[cpu.I : cpu.I + n]
+  sprite := cpu.Memory[cpu.I : cpu.I + n]
 
-  cpu.DrawMatrix[int(cpu.Vx[Vx])][int(cpu.Vx[Vy])] = true
+  for y, value := range sprite {
+    var seq []byte
+
+    for x := 7; x > 0; x-- {
+      if (value >> x) & 0x01 == 0 {
+        seq = append(seq, 0)
+        continue 
+      }
+      seq = append(seq, 1)
+
+      cpu.DrawMatrix[int(cpu.Vx[Vx]) + (7 - x)][int(cpu.Vx[Vy]) + y] ^= true
+    }
+    log.Printf("%v", seq)
+  }
+
+//  cpu.DrawMatrix[int(cpu.Vx[Vx])][int(cpu.Vx[Vy])] = true
 }
